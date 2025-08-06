@@ -150,14 +150,38 @@ export default {
       const name = this.Blocks[Math.floor(Math.random() * this.Blocks.length)];
       const shape = this.Shape[name];
       const pos = [-1, 3];
-
       const block = { name, shape, pos };
       // this.eraseBlock(); // 이전 블록 지우기
+
+      if (this.cells[0][3].classList.contains('locked')) {
+        console.log('게임 오버');
+        this.gameOver();
+        return;
+      }
+
       if (block) {
         this.block = block;
       } else {
         console.error('블록 생성 실패');
       }
+    },
+
+    gameOver() {
+      console.log('게임 오버');
+      alert(`게임 오버! 최종 점수: ${this.score}`);
+
+      this.score = 0; // Reset score
+      this.tickDuration = parseInt(
+        this.style.getPropertyValue('--tick-duration'),
+        10
+      ); // Reset tick duration
+      this.cells.forEach((row) =>
+        row.forEach((cell) => (cell.className = 'cell'))
+      ); // Clear board
+      this.spawnBlock(); // Spawn new block
+      this.lastTick = Date.now(); // Reset last tick
+      this.drawBlock(); // Draw the new block
+      requestAnimationFrame(this.tick); // Restart the game loop
     },
 
     // 블록을 고정하는 함수
@@ -232,6 +256,7 @@ export default {
     // 블록을 이동하는 함수
     canBlockMove(pos) {
       const { shape } = this.block;
+
       for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 4; c++) {
           if (shape[r][c] === 0) continue;
@@ -265,9 +290,6 @@ export default {
     },
 
     down() {
-      // locked가 아닌 블록을 아래로 이동
-      console.log(this.numRows - this.block.pos[0]);
-
       // 처음 블록이 생기는 위치
       const nextPos = [this.block.pos[0], this.block.pos[1]];
 
@@ -302,7 +324,7 @@ export default {
       if (!this.canBlockMove(this.block.pos)) {
         this.block.shape = originalShape; // Revert if rotation fails
       } else {
-        this.eraseBlock();
+        // this.eraseBlock();
         this.drawBlock();
       }
     },
